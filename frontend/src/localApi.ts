@@ -390,19 +390,28 @@ function parseCatalog(documentText: string): RawCatalogItem[] {
     const match = url.pathname.match(/^\/(lab|hw|proj)\/([a-zA-Z0-9_-]+)\/?$/);
     if (!match || match[2].toLowerCase().startsWith("sol-")) continue;
     const [, category, slug] = match;
+    const normalizedCategory = category.toLowerCase() as CatalogItem["category"];
+    const normalizedSlug = slug.toLowerCase();
+    if (normalizedCategory === "lab" && !/^lab\d+$/.test(normalizedSlug)) continue;
+    if (normalizedCategory === "hw" && !/^hw\d+$/.test(normalizedSlug)) continue;
+    if (["released", "locked", "current", "index"].includes(normalizedSlug)) continue;
     const id = `${category.toLowerCase()}:${slug.toLowerCase()}`;
     const pageUrl = `https://cs61a.org/${category.toLowerCase()}/${slug}/`;
     found.set(id, {
       id,
       name: link.textContent?.trim().replace(/\s+/g, " ") || slug,
-      category: category.toLowerCase() as CatalogItem["category"],
+      category: normalizedCategory,
       slug,
       pageUrl,
       downloadUrl: `${pageUrl}${slug}.zip`,
     });
   }
+  return sortCatalog(Array.from(found.values()));
+}
+
+function sortCatalog(items: RawCatalogItem[]): RawCatalogItem[] {
   const categoryOrder = { lab: 0, hw: 1, proj: 2 };
-  return Array.from(found.values()).sort(
+  return items.sort(
     (left, right) =>
       categoryOrder[left.category] - categoryOrder[right.category] ||
       left.slug.localeCompare(right.slug, undefined, { numeric: true }),
@@ -410,7 +419,15 @@ function parseCatalog(documentText: string): RawCatalogItem[] {
 }
 
 async function rawCatalog(refresh: boolean): Promise<RawCatalogItem[]> {
-  const cacheKey = "cs61a-catalog:v1";
+  const baselineResponse = await fetch("/catalog.json");
+  if (!baselineResponse.ok) throw new Error("无法加载作业目录");
+  const baseline = (await baselineResponse.json()) as RawCatalogItem[];
+  const merge = (dynamic: RawCatalogItem[]) => {
+    const merged = new Map(baseline.map((item) => [item.id, item]));
+    for (const item of dynamic) merged.set(item.id, item);
+    return sortCatalog(Array.from(merged.values()));
+  };
+  const cacheKey = "cs61a-catalog:v2";
   if (!refresh) {
     try {
       const cached = JSON.parse(localStorage.getItem(cacheKey) || "null");
@@ -419,7 +436,7 @@ async function rawCatalog(refresh: boolean): Promise<RawCatalogItem[]> {
         Date.now() - Number(cached.fetchedAt) < 60 * 60 * 1000 &&
         Array.isArray(cached.items)
       )
-        return cached.items;
+        return merge(cached.items);
     } catch {
       localStorage.removeItem(cacheKey);
     }
@@ -432,14 +449,12 @@ async function rawCatalog(refresh: boolean): Promise<RawCatalogItem[]> {
         cacheKey,
         JSON.stringify({ fetchedAt: Date.now(), items: parsed }),
       );
-      return parsed;
+      return merge(parsed);
     }
   } catch {
     // The bundled snapshot keeps the app usable when the official site is offline.
   }
-  const response = await fetch("/catalog.json");
-  if (!response.ok) throw new Error("无法加载作业目录");
-  return (await response.json()) as RawCatalogItem[];
+  return baseline;
 }
 
 async function catalog(refresh = false): Promise<CatalogItem[]> {

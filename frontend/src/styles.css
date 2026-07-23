@@ -122,20 +122,6 @@ button {
   gap: 8px;
 }
 
-.local-mode {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 9px;
-  color: #537061;
-  border: 1px solid #cedbd2;
-  border-radius: 999px;
-  background: #f0f7f2;
-  font-size: 10px;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
 .notice {
   max-width: 320px;
   overflow: hidden;
@@ -275,50 +261,61 @@ button {
 .locked-assignment {
   width: 100%;
   display: grid;
-  grid-template-columns: 30px minmax(0, 1fr) 16px;
-  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) 30px;
+  gap: 3px;
   align-items: center;
   margin-bottom: 6px;
-  padding: 9px 10px;
-  text-align: left;
   color: #737b72;
   border: 1px dashed #cdd4ca;
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.45);
-  cursor: pointer;
   transition: 150ms ease;
 }
 
-.locked-assignment:hover:not(:disabled) {
+.locked-assignment:hover {
   color: var(--green);
   border-color: #85a491;
   background: #fafffb;
   transform: translateY(-1px);
 }
 
-.locked-assignment:disabled {
+.locked-install {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) 16px;
+  gap: 8px;
+  align-items: center;
+  padding: 9px 5px 9px 10px;
+  text-align: left;
+  color: inherit;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.locked-install:disabled {
   cursor: wait;
   opacity: 0.65;
 }
 
-.locked-assignment > span:nth-child(2) {
+.locked-install > span:nth-child(2) {
   min-width: 0;
 }
 
-.locked-assignment strong,
-.locked-assignment small {
+.locked-install strong,
+.locked-install small {
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.locked-assignment strong {
+.locked-install strong {
   color: inherit;
   font-size: 12px;
 }
 
-.locked-assignment small {
+.locked-install small {
   margin-top: 3px;
   font-size: 10px;
 }
@@ -365,6 +362,13 @@ button {
   background: rgba(255, 255, 255, 0.65);
 }
 
+.assignment-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 30px;
+  align-items: center;
+  gap: 2px;
+}
+
 .assignment-row {
   width: 100%;
   display: grid;
@@ -376,6 +380,22 @@ button {
   border: 0;
   background: transparent;
   cursor: pointer;
+}
+
+.assignment-official {
+  width: 27px;
+  height: 27px;
+  display: grid;
+  place-items: center;
+  color: #818981;
+  border-radius: 7px;
+  text-decoration: none;
+  transition: 140ms ease;
+}
+
+.assignment-official:hover {
+  color: var(--green);
+  background: var(--green-light);
 }
 
 .assignment-icon {

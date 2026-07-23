@@ -14,7 +14,6 @@ import {
   ExternalLink,
   FileArchive,
   FileCode2,
-  HardDrive,
   Languages,
   LoaderCircle,
   LockKeyhole,
@@ -377,13 +376,6 @@ function App() {
           </div>
         </div>
         <div className="top-actions">
-          <span
-            className="local-mode"
-            title="源码、作答与进度只保存在当前浏览器，不会上传到服务器"
-          >
-            <HardDrive size={14} />
-            浏览器本地
-          </span>
           {notice && <span className="notice">{notice}</span>}
           <button
             className="button ghost"
@@ -446,33 +438,44 @@ function App() {
             <div className="locked-section">
               <div className="locked-heading">尚未安装</div>
               {lockedCatalog.map((item) => (
-                <button
-                  key={item.id}
-                  className="locked-assignment"
-                  disabled={Boolean(installingId)}
-                  onClick={() => void installOfficial(item)}
-                  title={`从 ${item.downloadUrl} 下载并安装`}
-                >
-                  <span className="locked-icon">
-                    {installingId === item.id ? (
-                      <LoaderCircle className="spin" size={16} />
-                    ) : (
-                      <LockKeyhole size={15} />
-                    )}
-                  </span>
-                  <span>
-                    <strong>{item.name}</strong>
-                    <small>
-                      {item.category === "lab"
-                        ? "Lab"
-                        : item.category === "hw"
-                          ? "Homework"
-                          : "Project"}{" "}
-                      · 点击安装
-                    </small>
-                  </span>
-                  <CloudDownload size={15} />
-                </button>
+                <div key={item.id} className="locked-assignment">
+                  <button
+                    className="locked-install"
+                    disabled={Boolean(installingId)}
+                    onClick={() => void installOfficial(item)}
+                    title={`从 ${item.downloadUrl} 下载并安装`}
+                  >
+                    <span className="locked-icon">
+                      {installingId === item.id ? (
+                        <LoaderCircle className="spin" size={16} />
+                      ) : (
+                        <LockKeyhole size={15} />
+                      )}
+                    </span>
+                    <span>
+                      <strong>{item.name}</strong>
+                      <small>
+                        {item.category === "lab"
+                          ? "Lab"
+                          : item.category === "hw"
+                            ? "Homework"
+                            : "Project"}{" "}
+                        · 点击安装
+                      </small>
+                    </span>
+                    <CloudDownload size={15} />
+                  </button>
+                  <a
+                    className="assignment-official"
+                    href={item.pageUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    title="打开官方网站"
+                    aria-label={`打开 ${item.name} 官方网站`}
+                  >
+                    <ExternalLink size={14} />
+                  </a>
+                </div>
               ))}
             </div>
           )}
@@ -715,22 +718,34 @@ function AssignmentTree({
   }, [active]);
   return (
     <div className={`assignment-tree ${active ? "active" : ""}`}>
-      <button
-        className="assignment-row"
-        onClick={() => {
-          setOpen((value) => !value);
-          if (!active && assignment.questions[0]) onSelect(assignment.questions[0].id);
-        }}
-      >
-        {open ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
-        <span className="assignment-icon">
-          <Code2 size={16} />
-        </span>
-        <span>
-          <strong>{assignment.name}</strong>
-          <small>{assignment.directory}</small>
-        </span>
-      </button>
+      <div className="assignment-header">
+        <button
+          className="assignment-row"
+          onClick={() => {
+            setOpen((value) => !value);
+            if (!active && assignment.questions[0]) onSelect(assignment.questions[0].id);
+          }}
+        >
+          {open ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
+          <span className="assignment-icon">
+            <Code2 size={16} />
+          </span>
+          <span>
+            <strong>{assignment.name}</strong>
+            <small>{assignment.directory}</small>
+          </span>
+        </button>
+        <a
+          className="assignment-official"
+          href={assignment.sourceUrl}
+          target="_blank"
+          rel="noreferrer"
+          title="打开官方网站"
+          aria-label={`打开 ${assignment.name} 官方网站`}
+        >
+          <ExternalLink size={14} />
+        </a>
+      </div>
       {open && (
         <div className="question-list">
           {assignment.questions.map((question, index) => (
