@@ -36,6 +36,9 @@ import {
   useMemo,
   useRef,
   useState,
+  type CSSProperties,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type PointerEvent as ReactPointerEvent,
 } from "react";
 import { api } from "./api";
 import type {
@@ -52,6 +55,13 @@ type Feedback = { correct: boolean; feedback: string };
 
 const progressKey = (assignmentId: string, questionId: string, caseId: string) =>
   `cs61a-progress:${assignmentId}:${questionId}:${caseId}`;
+
+type ResizablePane = "sidebar" | "problem" | "results";
+
+const layoutNumber = (key: string, fallback: number) => {
+  const value = Number(window.localStorage.getItem(`cs61a-layout:${key}`));
+  return Number.isFinite(value) && value > 0 ? value : fallback;
+};
 
 function App() {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
@@ -77,6 +87,21 @@ function App() {
     () => window.localStorage.getItem("cs61a-layout:results-open") === "true",
   );
   const [editorCollapsed, setEditorCollapsed] = useState(false);
+  const [sidebarWidth, setSidebarWidth] = useState(() =>
+    Math.min(Math.max(layoutNumber("sidebar-width", 280), 210), 430),
+  );
+  const [problemWidth, setProblemWidth] = useState(() =>
+    Math.min(
+      Math.max(layoutNumber("problem-width", 620), 340),
+      Math.max(340, window.innerWidth - sidebarWidth - 380),
+    ),
+  );
+  const [resultsHeight, setResultsHeight] = useState(() =>
+    Math.min(
+      Math.max(layoutNumber("results-height", 300), 150),
+      Math.min(620, window.innerHeight - 180),
+    ),
+  );
   const importRef = useRef<HTMLInputElement>(null);
   const editorRef = useRef<Parameters<OnMount>[0] | null>(null);
 
@@ -363,8 +388,91 @@ function App() {
     }
   };
 
+  const limits = (pane: ResizablePane, value: number) => {
+    if (pane === "sidebar") {
+      return Math.min(Math.max(value, 210), Math.min(430, window.innerWidth - 720));
+    }
+    if (pane === "problem") {
+      const maximum = Math.max(340, window.innerWidth - sidebarWidth - 380);
+      return Math.min(Math.max(value, 340), maximum);
+    }
+    return Math.min(
+      Math.max(value, 150),
+      Math.min(620, window.innerHeight - 180),
+    );
+  };
+
+  const storedKey = (pane: ResizablePane) =>
+    pane === "results" ? "results-height" : `${pane}-width`;
+
+  const persistPaneSize = (pane: ResizablePane, value: number) => {
+    window.localStorage.setItem(`cs61a-layout:${storedKey(pane)}`, String(value));
+  };
+
+  const beginResize = (
+    pane: ResizablePane,
+    event: ReactPointerEvent<HTMLDivElement>,
+  ) => {
+    if (window.innerWidth <= 1050) return;
+    event.preventDefault();
+    const start = pane === "sidebar" ? sidebarWidth : pane === "problem" ? problemWidth : resultsHeight;
+    const origin = pane === "results" ? event.clientY : event.clientX;
+    let latest = start;
+    window.document.body.classList.add(
+      pane === "results" ? "resizing-row" : "resizing-column",
+    );
+    const move = (moveEvent: PointerEvent) => {
+      const position = pane === "results" ? moveEvent.clientY : moveEvent.clientX;
+      const delta = position - origin;
+      latest = limits(pane, pane === "results" ? start - delta : start + delta);
+      if (pane === "sidebar") setSidebarWidth(latest);
+      else if (pane === "problem") setProblemWidth(latest);
+      else setResultsHeight(latest);
+    };
+    const finish = () => {
+      window.document.body.classList.remove("resizing-row", "resizing-column");
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", finish);
+      persistPaneSize(pane, latest);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", finish, { once: true });
+  };
+
+  const resetPane = (pane: ResizablePane) => {
+    const defaults = { sidebar: 280, problem: 620, results: 300 };
+    const next = limits(pane, defaults[pane]);
+    if (pane === "sidebar") setSidebarWidth(next);
+    else if (pane === "problem") setProblemWidth(next);
+    else setResultsHeight(next);
+    persistPaneSize(pane, next);
+  };
+
+  const resizeWithKeyboard = (
+    pane: ResizablePane,
+    event: ReactKeyboardEvent<HTMLDivElement>,
+  ) => {
+    const horizontal = pane === "results";
+    const decrease = horizontal ? event.key === "ArrowDown" : event.key === "ArrowLeft";
+    const increase = horizontal ? event.key === "ArrowUp" : event.key === "ArrowRight";
+    if (!decrease && !increase) return;
+    event.preventDefault();
+    const current = pane === "sidebar" ? sidebarWidth : pane === "problem" ? problemWidth : resultsHeight;
+    const next = limits(pane, current + (increase ? 16 : -16));
+    if (pane === "sidebar") setSidebarWidth(next);
+    else if (pane === "problem") setProblemWidth(next);
+    else setResultsHeight(next);
+    persistPaneSize(pane, next);
+  };
+
+  const layoutStyle = {
+    "--sidebar-width": `${sidebarWidth}px`,
+    "--problem-width": `${problemWidth}px`,
+    "--results-height": `${resultsHeight}px`,
+  } as CSSProperties;
+
   return (
-    <div className="app-shell">
+    <div className="app-shell" style={layoutStyle}>
       <header className="topbar">
         <div className="brand">
           <div className="brand-mark" aria-label="CS 61A">
@@ -494,6 +602,17 @@ function App() {
           )}
         </aside>
 
+        <div
+          className="resize-handle column-resizer"
+          role="separator"
+          aria-label="调整作业导航宽度"
+          aria-orientation="vertical"
+          tabIndex={0}
+          onPointerDown={(event) => beginResize("sidebar", event)}
+          onDoubleClick={() => resetPane("sidebar")}
+          onKeyDown={(event) => resizeWithKeyboard("sidebar", event)}
+        />
+
         <section className="problem-pane">
           {selectedAssignment && selectedQuestion ? (
             <>
@@ -593,6 +712,19 @@ function App() {
           )}
         </section>
 
+        {!editorCollapsed && (
+          <div
+            className="resize-handle column-resizer"
+            role="separator"
+            aria-label="调整题面与编辑器宽度"
+            aria-orientation="vertical"
+            tabIndex={0}
+            onPointerDown={(event) => beginResize("problem", event)}
+            onDoubleClick={() => resetPane("problem")}
+            onKeyDown={(event) => resizeWithKeyboard("problem", event)}
+          />
+        )}
+
         {!editorCollapsed && <section className="editor-pane">
           {selectedQuestion?.kind === "code" && selectedAssignment ? (
             <>
@@ -661,6 +793,18 @@ function App() {
       </main>
 
       <section className={`results-panel ${resultsOpen ? "open" : ""}`}>
+        {resultsOpen && (
+          <div
+            className="resize-handle row-resizer"
+            role="separator"
+            aria-label="调整测试结果面板高度"
+            aria-orientation="horizontal"
+            tabIndex={0}
+            onPointerDown={(event) => beginResize("results", event)}
+            onDoubleClick={() => resetPane("results")}
+            onKeyDown={(event) => resizeWithKeyboard("results", event)}
+          />
+        )}
         <button
           className="results-handle"
           onClick={() => setResultsOpen((value) => !value)}

@@ -190,14 +190,16 @@ button {
 .workspace {
   min-height: 0;
   display: grid;
-  grid-template-columns: 280px minmax(380px, 0.9fr) minmax(440px, 1.1fr);
-  gap: 1px;
-  background: var(--line);
+  grid-template-columns:
+    var(--sidebar-width) 5px var(--problem-width) 5px
+    minmax(360px, 1fr);
+  gap: 0;
+  background: var(--paper);
   border-bottom: 1px solid var(--line);
 }
 
 .workspace.editor-collapsed {
-  grid-template-columns: 280px minmax(0, 1fr);
+  grid-template-columns: var(--sidebar-width) 5px minmax(0, 1fr);
 }
 
 .sidebar,
@@ -212,6 +214,53 @@ button {
   overflow-y: auto;
   background: #f5f7f2;
   padding: 14px 10px;
+}
+
+.resize-handle {
+  position: relative;
+  z-index: 6;
+  outline: none;
+  touch-action: none;
+}
+
+.resize-handle::after {
+  content: "";
+  position: absolute;
+  background: var(--line);
+  transition:
+    background 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.resize-handle:hover::after,
+.resize-handle:focus-visible::after {
+  background: #6f9a82;
+  box-shadow: 0 0 0 1px rgba(36, 91, 69, 0.12);
+}
+
+.column-resizer {
+  cursor: col-resize;
+  background: var(--paper);
+}
+
+.column-resizer::after {
+  inset: 0 2px;
+}
+
+body.resizing-column,
+body.resizing-column * {
+  cursor: col-resize !important;
+  user-select: none !important;
+}
+
+body.resizing-row,
+body.resizing-row * {
+  cursor: row-resize !important;
+  user-select: none !important;
+}
+
+body.resizing-row .results-panel {
+  transition: none;
 }
 
 .sidebar-heading {
@@ -888,14 +937,32 @@ button {
 }
 
 .results-panel {
+  position: relative;
+  height: 38px;
   max-height: 38px;
   background: #f9faf7;
-  transition: max-height 220ms ease;
+  transition:
+    height 180ms ease,
+    max-height 180ms ease;
   z-index: 4;
 }
 
 .results-panel.open {
-  max-height: 300px;
+  height: var(--results-height);
+  max-height: min(70vh, 620px);
+}
+
+.row-resizer {
+  position: absolute;
+  top: -4px;
+  right: 0;
+  left: 0;
+  height: 8px;
+  cursor: row-resize;
+}
+
+.row-resizer::after {
+  inset: 3px 0;
 }
 
 .results-handle {
@@ -959,7 +1026,7 @@ button {
 }
 
 .results-body {
-  height: 261px;
+  height: calc(100% - 38px);
   display: grid;
   grid-template-columns: 190px minmax(0, 1fr);
   min-height: 0;
@@ -1101,6 +1168,11 @@ button {
     grid-template-columns: 250px minmax(0, 1fr);
   }
 
+  .column-resizer,
+  .row-resizer {
+    display: none;
+  }
+
   .panel-toggle span {
     display: none;
   }
@@ -1152,6 +1224,7 @@ button {
 
   .results-panel,
   .results-panel.open {
+    height: auto;
     max-height: none;
   }
 
