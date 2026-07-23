@@ -424,7 +424,9 @@ function parseCatalog(documentText: string): RawCatalogItem[] {
   for (const link of document.querySelectorAll<HTMLAnchorElement>("a[href]")) {
     let url: URL;
     try {
-      url = new URL(link.href, "https://cs61a.org/");
+      const href = link.getAttribute("href");
+      if (!href) continue;
+      url = new URL(href, "https://cs61a.org/");
     } catch {
       continue;
     }
@@ -493,11 +495,13 @@ async function rawCatalog(refresh: boolean): Promise<RawCatalogItem[]> {
         ...existing,
         ...item,
         name: existing?.name || item.name,
+        released:
+          existing && existing.released !== false ? true : item.released,
       });
     }
     return sortCatalog(Array.from(merged.values()));
   };
-  const cacheKey = "cs61a-catalog:v3";
+  const cacheKey = "cs61a-catalog:v4";
   if (!refresh) {
     try {
       const cached = JSON.parse(localStorage.getItem(cacheKey) || "null");
