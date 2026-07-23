@@ -39,6 +39,7 @@ export interface CatalogItem {
   slug: string;
   pageUrl: string;
   downloadUrl: string;
+  released?: boolean;
   installed: boolean;
   assignmentId: string | null;
 }

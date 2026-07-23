@@ -9,6 +9,7 @@ import {
   ChevronRight,
   ChevronUp,
   Circle,
+  Clock3,
   CloudDownload,
   Code2,
   ExternalLink,
@@ -437,17 +438,28 @@ function App() {
           {lockedCatalog.length > 0 && (
             <div className="locked-section">
               <div className="locked-heading">尚未安装</div>
-              {lockedCatalog.map((item) => (
-                <div key={item.id} className="locked-assignment">
+              {lockedCatalog.map((item) => {
+                const released = item.released !== false;
+                return (
+                <div
+                  key={item.id}
+                  className={`locked-assignment ${released ? "" : "unreleased"}`}
+                >
                   <button
                     className="locked-install"
-                    disabled={Boolean(installingId)}
-                    onClick={() => void installOfficial(item)}
-                    title={`从 ${item.downloadUrl} 下载并安装`}
+                    disabled={!released || Boolean(installingId)}
+                    onClick={() => released && void installOfficial(item)}
+                    title={
+                      released
+                        ? `从 ${item.downloadUrl} 下载并安装`
+                        : "该作业尚未在官网发布"
+                    }
                   >
                     <span className="locked-icon">
                       {installingId === item.id ? (
                         <LoaderCircle className="spin" size={16} />
+                      ) : !released ? (
+                        <Clock3 size={15} />
                       ) : (
                         <LockKeyhole size={15} />
                       )}
@@ -460,23 +472,24 @@ function App() {
                           : item.category === "hw"
                             ? "Homework"
                             : "Project"}{" "}
-                        · 点击安装
+                        · {released ? "点击安装" : "尚未发布"}
                       </small>
                     </span>
-                    <CloudDownload size={15} />
+                    {released ? <CloudDownload size={15} /> : <Clock3 size={14} />}
                   </button>
                   <a
                     className="assignment-official"
-                    href={item.pageUrl}
+                    href={released ? item.pageUrl : "https://cs61a.org/"}
                     target="_blank"
                     rel="noreferrer"
-                    title="打开官方网站"
+                    title={released ? "打开作业官网" : "查看 CS61A 课程官网"}
                     aria-label={`打开 ${item.name} 官方网站`}
                   >
                     <ExternalLink size={14} />
                   </a>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </aside>

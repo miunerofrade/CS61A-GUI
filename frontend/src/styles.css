@@ -281,6 +281,17 @@ button {
   transform: translateY(-1px);
 }
 
+.locked-assignment.unreleased {
+  background: rgba(246, 247, 243, 0.72);
+}
+
+.locked-assignment.unreleased:hover {
+  color: #737b72;
+  border-color: #cdd4ca;
+  background: rgba(246, 247, 243, 0.72);
+  transform: none;
+}
+
 .locked-install {
   min-width: 0;
   display: grid;

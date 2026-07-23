@@ -404,6 +404,27 @@ function parseCatalog(documentText: string): RawCatalogItem[] {
       slug,
       pageUrl,
       downloadUrl: `${pageUrl}${slug}.zip`,
+      released: true,
+    });
+  }
+
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  while (walker.nextNode()) {
+    const label = walker.currentNode.nodeValue?.trim().replace(/\s+/g, " ") || "";
+    const match = label.match(/^(Lab|HW)\s+(\d{2}):\s*(.+)$/i);
+    if (!match) continue;
+    const category = match[1].toLowerCase() === "lab" ? "lab" : "hw";
+    const slug = `${category}${match[2]}`;
+    const id = `${category}:${slug}`;
+    if (found.has(id)) continue;
+    found.set(id, {
+      id,
+      name: `${match[1].toUpperCase() === "HW" ? "HW" : "Lab"} ${match[2]}: ${match[3]}`,
+      category,
+      slug,
+      pageUrl: "https://cs61a.org/",
+      downloadUrl: `https://cs61a.org/${category}/${slug}/${slug}.zip`,
+      released: false,
     });
   }
   return sortCatalog(Array.from(found.values()));
@@ -424,10 +445,17 @@ async function rawCatalog(refresh: boolean): Promise<RawCatalogItem[]> {
   const baseline = (await baselineResponse.json()) as RawCatalogItem[];
   const merge = (dynamic: RawCatalogItem[]) => {
     const merged = new Map(baseline.map((item) => [item.id, item]));
-    for (const item of dynamic) merged.set(item.id, item);
+    for (const item of dynamic) {
+      const existing = merged.get(item.id);
+      merged.set(item.id, {
+        ...existing,
+        ...item,
+        name: existing?.name || item.name,
+      });
+    }
     return sortCatalog(Array.from(merged.values()));
   };
-  const cacheKey = "cs61a-catalog:v2";
+  const cacheKey = "cs61a-catalog:v3";
   if (!refresh) {
     try {
       const cached = JSON.parse(localStorage.getItem(cacheKey) || "null");
