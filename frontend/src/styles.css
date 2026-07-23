@@ -8,6 +8,8 @@
   --muted: #737a70;
   --line: #d9ded5;
   --paper: #fbfcf8;
+  --font-mono: "JetBrainsMono NFM", "JetBrains Mono", "Cascadia Mono",
+    "SFMono-Regular", Consolas, "Liberation Mono", monospace;
   --green: #245b45;
   --green-light: #e3eee7;
   --orange: #e2693f;
@@ -622,7 +624,14 @@ button {
   color: #e7eee8;
   background: #1b211e;
   border-radius: 9px;
-  font: 13px/1.65 "JetBrainsMono NFM", "JetBrains Mono", monospace;
+  font-family: var(--font-mono) !important;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.course-content pre *,
+.theory-card pre * {
+  font-family: var(--font-mono) !important;
 }
 
 .course-content code:not(pre code) {
@@ -630,7 +639,8 @@ button {
   color: #9a3f26;
   background: #f4e9e3;
   border-radius: 4px;
-  font: 12px "JetBrainsMono NFM", "JetBrains Mono", monospace;
+  font-family: var(--font-mono);
+  font-size: 12px;
 }
 
 .course-content a {
