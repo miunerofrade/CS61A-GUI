@@ -1,0 +1,18 @@
+[
+  {"id":"lab:lab00","name":"Lab 00: Getting Started","category":"lab","slug":"lab00","pageUrl":"https://cs61a.org/lab/lab00/","downloadUrl":"https://cs61a.org/lab/lab00/lab00.zip"},
+  {"id":"lab:lab01","name":"Lab 01: Functions, Control","category":"lab","slug":"lab01","pageUrl":"https://cs61a.org/lab/lab01/","downloadUrl":"https://cs61a.org/lab/lab01/lab01.zip"},
+  {"id":"lab:lab02","name":"Lab 02: Higher-Order Functions, Lambda Expressions","category":"lab","slug":"lab02","pageUrl":"https://cs61a.org/lab/lab02/","downloadUrl":"https://cs61a.org/lab/lab02/lab02.zip"},
+  {"id":"lab:lab03","name":"Lab 03: Sequences, Recursion","category":"lab","slug":"lab03","pageUrl":"https://cs61a.org/lab/lab03/","downloadUrl":"https://cs61a.org/lab/lab03/lab03.zip"},
+  {"id":"lab:lab04","name":"Lab 04: Sequences, Tree Recursion, Trees","category":"lab","slug":"lab04","pageUrl":"https://cs61a.org/lab/lab04/","downloadUrl":"https://cs61a.org/lab/lab04/lab04.zip"},
+  {"id":"lab:lab05","name":"Lab 05: Mutability, Iterators, Generators","category":"lab","slug":"lab05","pageUrl":"https://cs61a.org/lab/lab05/","downloadUrl":"https://cs61a.org/lab/lab05/lab05.zip"},
+  {"id":"lab:lab06","name":"Lab 06: Object-Oriented Programming, Inheritance","category":"lab","slug":"lab06","pageUrl":"https://cs61a.org/lab/lab06/","downloadUrl":"https://cs61a.org/lab/lab06/lab06.zip"},
+  {"id":"lab:lab07","name":"Lab 07: Mutable Trees","category":"lab","slug":"lab07","pageUrl":"https://cs61a.org/lab/lab07/","downloadUrl":"https://cs61a.org/lab/lab07/lab07.zip"},
+  {"id":"lab:lab08","name":"Lab 08: Linked Lists","category":"lab","slug":"lab08","pageUrl":"https://cs61a.org/lab/lab08/","downloadUrl":"https://cs61a.org/lab/lab08/lab08.zip"},
+  {"id":"hw:hw01","name":"HW 01: Functions, Control, Higher-Order Functions","category":"hw","slug":"hw01","pageUrl":"https://cs61a.org/hw/hw01/","downloadUrl":"https://cs61a.org/hw/hw01/hw01.zip"},
+  {"id":"hw:hw02","name":"HW 02: Recursion, Tree Recursion, Sequences, Python Lists","category":"hw","slug":"hw02","pageUrl":"https://cs61a.org/hw/hw02/","downloadUrl":"https://cs61a.org/hw/hw02/hw02.zip"},
+  {"id":"hw:hw03","name":"HW 03: Mutability, Trees, Iterators, Generators","category":"hw","slug":"hw03","pageUrl":"https://cs61a.org/hw/hw03/","downloadUrl":"https://cs61a.org/hw/hw03/hw03.zip"},
+  {"id":"hw:hw04","name":"HW 04: Object-Oriented Programming, Inheritance, Mutable Trees","category":"hw","slug":"hw04","pageUrl":"https://cs61a.org/hw/hw04/","downloadUrl":"https://cs61a.org/hw/hw04/hw04.zip"},
+  {"id":"proj:ants","name":"Ants","category":"proj","slug":"ants","pageUrl":"https://cs61a.org/proj/ants/","downloadUrl":"https://cs61a.org/proj/ants/ants.zip"},
+  {"id":"proj:cats","name":"Cats","category":"proj","slug":"cats","pageUrl":"https://cs61a.org/proj/cats/","downloadUrl":"https://cs61a.org/proj/cats/cats.zip"},
+  {"id":"proj:hog","name":"Hog","category":"proj","slug":"hog","pageUrl":"https://cs61a.org/proj/hog/","downloadUrl":"https://cs61a.org/proj/hog/hog.zip"}
+]

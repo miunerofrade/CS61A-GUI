@@ -1,0 +1,12 @@
+.venv/
+frontend/node_modules/
+frontend/dist/
+.cache/
+.data/
+*.pyc
+*.tsbuildinfo
+frontend/vite.config.js
+frontend/vite.config.d.ts
+__pycache__/
+.pytest_cache/
+.vercel/
