@@ -64,8 +64,16 @@ class RunManager:
                         sandbox,
                         ignore=shutil.ignore_patterns(*IGNORED_NAMES, "*.pyc"),
                     )
+                    python_executable = sys.executable
+                    if getattr(sys, "frozen", False):
+                        bundled_python = (
+                            Path(sys.executable).resolve().parent / "python" / "python.exe"
+                        )
+                        if not bundled_python.is_file():
+                            raise RuntimeError("桌面版缺少内置 Python 运行环境")
+                        python_executable = str(bundled_python)
                     command = [
-                        sys.executable,
+                        python_executable,
                         "ok",
                         "--local",
                         "--nointeract",

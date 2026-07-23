@@ -3,6 +3,13 @@
 一个面向 CS61A 作业的浏览器本地学习工作区。题面、源码、作答、备份和学习进度
 均保存在当前浏览器中，不需要账号，也不会在不同访客之间共享。
 
+## 下载桌面版
+
+需要完整本机 OK 环境时，可从
+[GitHub Releases](https://github.com/miunerofrade/CS61A-GUI/releases/latest)
+下载 Windows x64 压缩包。完整解压后运行 `CS61A-GUI.exe`，无需另外安装 Node.js
+或 Python。
+
 ## 在线模式
 
 - 从官方目录选择 Lab、Homework 或 Project 后，由浏览器下载并安全解压 ZIP。
@@ -12,9 +19,16 @@
 - Python 与 OK 在独立的 Pyodide Web Worker 中运行；超时或取消会直接终止 Worker。
 - 题面翻译使用 MyMemory 公共接口，只发送题面中的普通文本，不发送代码或答案。
 
-浏览器中的 Pyodide 没有原生子进程、线程和系统命令。因此普通 Python 作业通常可以
-直接运行；依赖外部可执行程序、系统网络或原生扩展的完整 OK 测试会显示明确错误，
-这类作业可改用桌面模式。
+浏览器中的 Pyodide 没有原生子进程、线程、原始网络套接字和系统命令。应用会在导入
+作业时自动扫描源码与附属文件，并在左侧和题面顶部显示兼容性：
+
+- 绿色勾：浏览器可运行当前标准 OK 测试。
+- 黄色警告：基础测试可运行，但图形界面、多人或联网扩展需要桌面版。当前 Ants 的
+  GUI 与 Cats 的 multiplayer 属于此类。
+- 桌面图标：Scheme、SQL，或主源码直接依赖 `subprocess`、`multiprocessing`、
+  `socket`、`threading`、`tkinter`、`turtle`，浏览器测试按钮会停用。
+
+这项检测会随导入的作业内容动态执行，不依赖写死的 Lab 编号。
 
 ## 部署到 Vercel
 
@@ -37,8 +51,14 @@ PowerShell：
 .\start.ps1
 ```
 
-应用会在 `http://127.0.0.1:8761` 打开。FastAPI 在本地提供静态页面与官方资源代理；
-作业数据仍保存在浏览器 IndexedDB 中。
+应用会在 `http://127.0.0.1:8761` 打开。源码、备份与下载的作业位于本地工作区，
+测试通过本机 Python 执行。
+
+构建 Windows Release：
+
+```powershell
+.\scripts\build-release.ps1 -Version 1.0.0
+```
 
 只开发前端时：
 

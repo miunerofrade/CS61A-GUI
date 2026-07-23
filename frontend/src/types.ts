@@ -20,6 +20,13 @@ export interface Question {
   sourceHint: string | null;
 }
 
+export type BrowserSupportLevel = "full" | "partial" | "desktop";
+
+export interface BrowserCompatibility {
+  level: BrowserSupportLevel;
+  reasons: string[];
+}
+
 export interface Assignment {
   id: string;
   name: string;
@@ -30,6 +37,7 @@ export interface Assignment {
   files: SourceFile[];
   questions: Question[];
   defaultTests: string[];
+  browserCompatibility?: BrowserCompatibility;
 }
 
 export interface CatalogItem {

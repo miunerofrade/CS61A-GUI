@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import sys
 from pathlib import Path
 from typing import AsyncIterator
 from urllib.parse import urlparse
@@ -24,8 +25,14 @@ from .translation import TranslationError, TranslationService
 
 
 PACKAGE_FILE = Path(__file__).resolve()
-DEFAULT_WORKSPACE = PACKAGE_FILE.parents[3]
-GUI_ROOT = PACKAGE_FILE.parents[2]
+if getattr(sys, "frozen", False):
+    GUI_ROOT = Path(getattr(sys, "_MEIPASS", Path(sys.executable).parent)).resolve()
+    DEFAULT_WORKSPACE = Path(sys.executable).resolve().parent
+    STATE_ROOT = DEFAULT_WORKSPACE
+else:
+    DEFAULT_WORKSPACE = PACKAGE_FILE.parents[3]
+    GUI_ROOT = PACKAGE_FILE.parents[2]
+    STATE_ROOT = GUI_ROOT
 
 
 class SaveRequest(BaseModel):
@@ -57,8 +64,8 @@ def create_app(workspace: Path | None = None) -> FastAPI:
     ).resolve()
     registry = Registry(root)
     registry.refresh()
-    data_dir = GUI_ROOT / ".data"
-    cache_dir = GUI_ROOT / ".cache"
+    data_dir = STATE_ROOT / ".data"
+    cache_dir = STATE_ROOT / ".cache"
     store = FileStore(registry, data_dir)
     content = ContentService(cache_dir)
     translations = TranslationService(cache_dir)
@@ -288,12 +295,10 @@ def main() -> None:
     import uvicorn
     import webbrowser
 
+    port = int(os.environ.get("CS61A_PORT", "8761"))
     if os.environ.get("CS61A_NO_BROWSER") != "1":
-        threading.Timer(1.0, lambda: webbrowser.open("http://127.0.0.1:8761")).start()
+        threading.Timer(
+            1.0, lambda: webbrowser.open(f"http://127.0.0.1:{port}")
+        ).start()
 
-    uvicorn.run(
-        "cs61a_gui.app:app",
-        host="127.0.0.1",
-        port=8761,
-        reload=False,
-    )
+    uvicorn.run(app, host="127.0.0.1", port=port, reload=False)

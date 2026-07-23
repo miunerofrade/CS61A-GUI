@@ -15,6 +15,7 @@ import {
 import type {
   Assignment,
   AssignmentContent,
+  BrowserCompatibility,
   CatalogItem,
   FileDocument,
   RunResult,
@@ -84,6 +85,42 @@ function languageFor(path: string): string {
   if (suffix === ".scm" || suffix === ".scheme") return "scheme";
   if (suffix === ".sql") return "sql";
   return "plaintext";
+}
+
+function detectBrowserCompatibility(
+  sourcePaths: string[],
+  archivePaths: string[],
+  textFiles: Record<string, string> = {},
+): BrowserCompatibility {
+  const reasons: string[] = [];
+  const suffixes = sourcePaths.map(extension);
+  if (suffixes.some((suffix) => [".scm", ".scheme"].includes(suffix))) {
+    reasons.push("Scheme 的完整 OK 测试需要桌面 Python 环境");
+  }
+  if (suffixes.includes(".sql")) {
+    reasons.push("SQL 的完整 OK 测试需要桌面 SQLite 环境");
+  }
+  const systemPattern =
+    /\b(?:import|from)\s+(?:subprocess|multiprocessing|socket|threading|tkinter|turtle)\b/;
+  for (const path of sourcePaths) {
+    if (systemPattern.test(textFiles[path] || "")) {
+      reasons.push(`${path} 使用了浏览器不支持的系统模块`);
+    }
+  }
+  const normalizedPaths = archivePaths.map((path) => path.toLowerCase());
+  if (normalizedPaths.some((path) => /(^|\/)gui\.py$/.test(path))) {
+    reasons.push("作业附带的图形界面需要桌面环境");
+  }
+  if (normalizedPaths.some((path) => path.includes("/multiplayer/"))) {
+    reasons.push("多人或联网扩展功能需要线程与网络能力");
+  }
+  const requiresDesktop = suffixes.some((suffix) =>
+    [".scm", ".scheme", ".sql"].includes(suffix),
+  ) || sourcePaths.some((path) => systemPattern.test(textFiles[path] || ""));
+  return {
+    level: requiresDesktop ? "desktop" : reasons.length ? "partial" : "full",
+    reasons,
+  };
 }
 
 function sourceUrl(endpoint: string, slug: string): string {
@@ -231,6 +268,11 @@ async function importArchive(file: Blob): Promise<{ root: string }> {
         null,
     })),
     defaultTests: inspected.config.default_tests || [],
+    browserCompatibility: detectBrowserCompatibility(
+      inspected.config.src,
+      Object.keys(archive),
+      inspectionFiles,
+    ),
   };
   await putStoredAssignment({
     id: assignmentId,
@@ -507,7 +549,21 @@ async function catalog(refresh = false): Promise<CatalogItem[]> {
 
 export const api = {
   async assignments(_refresh = false): Promise<Assignment[]> {
-    return (await listStoredAssignments()).map((item) => item.assignment);
+    const workspaces = await listStoredAssignments();
+    for (const workspace of workspaces) {
+      if (workspace.assignment.browserCompatibility) continue;
+      const sourcePaths = Object.values(workspace.files).map((file) => file.path);
+      const sourceText = Object.fromEntries(
+        Object.values(workspace.files).map((file) => [file.path, file.content]),
+      );
+      workspace.assignment.browserCompatibility = detectBrowserCompatibility(
+        sourcePaths,
+        Object.keys(workspace.archive),
+        sourceText,
+      );
+      await putStoredAssignment(workspace);
+    }
+    return workspaces.map((item) => item.assignment);
   },
 
   async content(assignmentId: string): Promise<AssignmentContent> {

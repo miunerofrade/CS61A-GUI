@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 from cs61a_gui.registry import Registry
 
 
@@ -39,3 +42,23 @@ def test_splits_wwpd_examples(registry: Registry):
     assert registry.check_theory(assignment.id, wwpd.id, "case-0", "6")
     assert registry.check_theory(assignment.id, wwpd.id, "case-1", "hi")
 
+
+def test_workspace_named_gui_still_discovers_assignments(tmp_path: Path):
+    workspace = tmp_path / "gui"
+    assignment = workspace / "lab00"
+    assignment.mkdir(parents=True)
+    (assignment / "ok").write_text("placeholder", encoding="utf-8")
+    (assignment / "lab00.py").write_text("answer = 42\n", encoding="utf-8")
+    (assignment / "lab00.ok").write_text(
+        json.dumps(
+            {
+                "name": "Lab 00",
+                "endpoint": "cal/cs61a/su26/lab00",
+                "src": ["lab00.py"],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    registry = Registry(workspace)
+    assert [item.name for item in registry.refresh()] == ["Lab 00"]

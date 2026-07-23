@@ -18,6 +18,7 @@ import {
   Languages,
   LoaderCircle,
   LockKeyhole,
+  MonitorDown,
   PanelBottomClose,
   PanelBottomOpen,
   PanelRightClose,
@@ -28,6 +29,7 @@ import {
   Save,
   Square,
   TestTube2,
+  TriangleAlert,
   XCircle,
 } from "lucide-react";
 import {
@@ -40,7 +42,7 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
   type PointerEvent as ReactPointerEvent,
 } from "react";
-import { api } from "./api";
+import { api, isDesktopRuntime } from "./api";
 import type {
   Assignment,
   AssignmentContent,
@@ -52,6 +54,12 @@ import type {
 } from "./types";
 
 type Feedback = { correct: boolean; feedback: string };
+
+const RELEASES_URL =
+  "https://github.com/miunerofrade/CS61A-GUI/releases/latest";
+
+const browserSupport = (assignment?: Assignment | null) =>
+  assignment?.browserCompatibility ?? { level: "full" as const, reasons: [] };
 
 const progressKey = (assignmentId: string, questionId: string, caseId: string) =>
   `cs61a-progress:${assignmentId}:${questionId}:${caseId}`;
@@ -286,6 +294,15 @@ function App() {
 
   const startRun = async (wholeAssignment: boolean) => {
     if (!selectedAssignment) return;
+    const support = browserSupport(selectedAssignment);
+    if (!isDesktopRuntime && support.level === "desktop") {
+      setResultsOpen(true);
+      setNotice("这份作业需要桌面版才能运行完整 OK 测试。");
+      return;
+    }
+    if (!isDesktopRuntime && support.level === "partial") {
+      setNotice("正在浏览器中运行基础测试；图形界面或联网扩展请使用桌面版。");
+    }
     if (document && (dirty || editorValue !== document.content)) {
       const saved = await save();
       if (!saved) return;
@@ -681,6 +698,31 @@ function App() {
                 </div>
               </div>
               <div className="problem-scroll">
+                {!isDesktopRuntime &&
+                  browserSupport(selectedAssignment).level !== "full" && (
+                    <div
+                      className={`compatibility-banner ${browserSupport(selectedAssignment).level}`}
+                    >
+                      {browserSupport(selectedAssignment).level === "desktop" ? (
+                        <MonitorDown size={18} />
+                      ) : (
+                        <TriangleAlert size={18} />
+                      )}
+                      <div>
+                        <strong>
+                          {browserSupport(selectedAssignment).level === "desktop"
+                            ? "此作业需要桌面版运行测试"
+                            : "部分功能仅在桌面版可用"}
+                        </strong>
+                        <span>
+                          {browserSupport(selectedAssignment).reasons.join("；")}
+                        </span>
+                      </div>
+                      <a href={RELEASES_URL} target="_blank" rel="noreferrer">
+                        下载桌面版
+                      </a>
+                    </div>
+                  )}
                 {content?.source === "local" && (
                   <div className="source-warning">
                     当前显示本地回退内容；代码和测试不受影响。
@@ -830,7 +872,12 @@ function App() {
             <div className="run-actions">
               <button
                 className="button primary"
-                disabled={!selectedQuestion || Boolean(runId)}
+                disabled={
+                  !selectedQuestion ||
+                  Boolean(runId) ||
+                  (!isDesktopRuntime &&
+                    browserSupport(selectedAssignment).level === "desktop")
+                }
                 onClick={() => void startRun(false)}
               >
                 {runId ? <LoaderCircle className="spin" size={16} /> : <Play size={16} />}
@@ -838,7 +885,12 @@ function App() {
               </button>
               <button
                 className="button"
-                disabled={!selectedAssignment || Boolean(runId)}
+                disabled={
+                  !selectedAssignment ||
+                  Boolean(runId) ||
+                  (!isDesktopRuntime &&
+                    browserSupport(selectedAssignment).level === "desktop")
+                }
                 onClick={() => void startRun(true)}
               >
                 <TestTube2 size={16} /> 测试整份作业
@@ -847,6 +899,18 @@ function App() {
                 <button className="button danger" onClick={() => void cancelRun()}>
                   <Square size={14} /> 取消
                 </button>
+              )}
+              {!isDesktopRuntime &&
+                selectedAssignment &&
+                browserSupport(selectedAssignment).level !== "full" && (
+                <div className="run-compatibility-note">
+                  {browserSupport(selectedAssignment).level === "desktop"
+                    ? "浏览器无法提供此作业需要的本机运行环境。"
+                    : "基础测试可在浏览器运行；扩展功能请使用桌面版。"}
+                  <a href={RELEASES_URL} target="_blank" rel="noreferrer">
+                    获取桌面版
+                  </a>
+                </div>
               )}
             </div>
             <ResultView result={runResult} output={runOutput} status={runStatus} />
@@ -869,6 +933,7 @@ function AssignmentTree({
   onSelect: (questionId: string) => void;
 }) {
   const active = selectedAssignmentId === assignment.id;
+  const support = browserSupport(assignment);
   const [open, setOpen] = useState(active);
   useEffect(() => {
     if (active) setOpen(true);
@@ -892,6 +957,29 @@ function AssignmentTree({
             <small>{assignment.directory}</small>
           </span>
         </button>
+        {!isDesktopRuntime && (
+          <span
+            className={`browser-support ${support.level}`}
+            title={
+              support.level === "full"
+                ? "浏览器完整支持"
+                : support.reasons.join("；")
+            }
+            aria-label={
+              support.level === "full"
+                ? "浏览器完整支持"
+                : `浏览器${support.level === "partial" ? "部分支持" : "不支持测试"}`
+            }
+          >
+            {support.level === "full" ? (
+              <CheckCircle2 size={14} />
+            ) : support.level === "partial" ? (
+              <TriangleAlert size={14} />
+            ) : (
+              <MonitorDown size={14} />
+            )}
+          </span>
+        )}
         <a
           className="assignment-official"
           href={assignment.sourceUrl}

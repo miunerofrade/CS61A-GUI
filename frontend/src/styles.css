@@ -426,9 +426,32 @@ body.resizing-row .results-panel {
 
 .assignment-header {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 30px;
+  grid-template-columns: minmax(0, 1fr) 25px 30px;
   align-items: center;
   gap: 2px;
+}
+
+.browser-support {
+  width: 23px;
+  height: 23px;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+}
+
+.browser-support.full {
+  color: #2f7657;
+  background: #e7f3eb;
+}
+
+.browser-support.partial {
+  color: #9a6b17;
+  background: #fff4d7;
+}
+
+.browser-support.desktop {
+  color: #875244;
+  background: #f7e9e4;
 }
 
 .assignment-row {
@@ -651,6 +674,44 @@ body.resizing-row .results-panel {
   border-radius: 8px;
   background: #fff8e7;
   font-size: 12px;
+}
+
+.compatibility-banner {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 17px;
+  padding: 11px 12px;
+  border: 1px solid #e8cf93;
+  border-radius: 9px;
+  color: #75591e;
+  background: #fff8e7;
+  font-size: 12px;
+}
+
+.compatibility-banner.desktop {
+  color: #774b3f;
+  border-color: #e4c2b7;
+  background: #fff2ee;
+}
+
+.compatibility-banner strong,
+.compatibility-banner span {
+  display: block;
+}
+
+.compatibility-banner span {
+  margin-top: 2px;
+  opacity: 0.85;
+  line-height: 1.45;
+}
+
+.compatibility-banner a,
+.run-compatibility-note a {
+  color: inherit;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .course-content {
@@ -1039,6 +1100,20 @@ body.resizing-row .results-panel {
   gap: 8px;
   padding: 12px;
   border-right: 1px solid var(--line);
+}
+
+.run-compatibility-note {
+  padding: 7px 10px;
+  color: #74591f;
+  border: 1px solid #ead6a5;
+  border-radius: 7px;
+  background: #fff9ea;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.run-compatibility-note a {
+  margin-left: 8px;
 }
 
 .result-placeholder,

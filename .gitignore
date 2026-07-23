@@ -10,3 +10,5 @@ frontend/vite.config.d.ts
 __pycache__/
 .pytest_cache/
 .vercel/
+release/
+*.spec

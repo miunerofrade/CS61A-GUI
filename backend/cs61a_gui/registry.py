@@ -114,7 +114,8 @@ class Registry:
         answers: dict[tuple[str, str, str], TheoryAnswer] = {}
 
         for config_path in sorted(self.workspace.rglob("*.ok")):
-            if any(part in SKIP_PARTS or part == "gui" for part in config_path.parts):
+            relative_parts = config_path.relative_to(self.workspace).parts
+            if any(part in SKIP_PARTS or part == "gui" for part in relative_parts):
                 continue
             if not (config_path.parent / "ok").is_file():
                 continue
