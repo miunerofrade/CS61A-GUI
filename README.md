@@ -25,8 +25,8 @@
 - Build Command：`npm --prefix frontend run build`
 - Output Directory：`frontend/dist`
 
-`api/course.js` 是一个无状态的官方资源代理，只允许读取 `https://cs61a.org`，
-不接收也不保存访客源码、作答或进度。其余功能均在浏览器中完成。
+`api/course.js` 是一个流式、无状态的官方资源代理，只允许读取
+`https://cs61a.org`，不接收也不保存访客源码、作答或进度。其余功能均在浏览器中完成。
 
 ## 本地运行
 

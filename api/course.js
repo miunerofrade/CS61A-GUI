@@ -1,3 +1,6 @@
+import { Transform } from "node:stream";
+import { pipeline } from "node:stream/promises";
+
 const ALLOWED_HOST = "cs61a.org";
 const MAX_BYTES = 50 * 1024 * 1024;
 
@@ -37,18 +40,29 @@ export default async function handler(request, response) {
       response.status(413).json({ error: "Resource is too large" });
       return;
     }
-    const body = Buffer.from(await upstream.arrayBuffer());
-    if (body.byteLength > MAX_BYTES) {
-      response.status(413).json({ error: "Resource is too large" });
-      return;
-    }
     response.setHeader(
       "Content-Type",
       upstream.headers.get("content-type") || "application/octet-stream",
     );
     response.setHeader("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
-    response.status(200).send(body);
+    response.status(200);
+    let transferred = 0;
+    const limiter = new Transform({
+      transform(chunk, _encoding, callback) {
+        transferred += chunk.length;
+        if (transferred > MAX_BYTES) {
+          callback(new Error("Official resource exceeds 50 MB"));
+          return;
+        }
+        callback(null, chunk);
+      },
+    });
+    await pipeline(upstream.body, limiter, response);
   } catch {
-    response.status(502).json({ error: "Unable to reach cs61a.org" });
+    if (!response.headersSent) {
+      response.status(502).json({ error: "Unable to reach cs61a.org" });
+    } else {
+      response.destroy();
+    }
   }
 }
